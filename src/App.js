@@ -18,7 +18,7 @@ export default function App() {
   useEffect(() => {
     try {
       api.get('repositories').then((response) => {
-        setRepositories([...repositories, ...response.data]);
+        setRepositories(response.data);
       });
     } catch (err) {
       Alert('The repos could not be loaded');
@@ -27,12 +27,14 @@ export default function App() {
 
   async function handleLikeRepository(id) {
     try {
-      const { data } = await api.post(`repositories/${id}/like`);
-      const repositoryIndex = repositories.findIndex(
-        (repository) => repository.id === id
+      const { data: likedRepository } = await api.post(
+        `repositories/${id}/like`
       );
-      repositories[repositoryIndex] = data;
-      setRepositories([...repositories]);
+
+      const repositoriesUpdtated = repositories.map((repository) =>
+        repository.id === id ? likedRepository : repository
+      );
+      setRepositories(repositoriesUpdtated);
     } catch (err) {
       Alert('It was not possible to like this repository');
     }
@@ -49,11 +51,8 @@ export default function App() {
             <View style={styles.repositoryContainer}>
               <Text style={styles.repository}>{repository.title}</Text>
               <View style={styles.techsContainer}>
-                {repository.techs.map((tech, index) => (
-                  <Text
-                    key={`${repository.id}-${tech}-${index}`}
-                    style={styles.tech}
-                  >
+                {repository.techs.map((tech) => (
+                  <Text key={tech} style={styles.tech}>
                     {tech}
                   </Text>
                 ))}
